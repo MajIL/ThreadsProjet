@@ -63,6 +63,23 @@ void DessinePiece(PIECE piece);
 int  CompareCases(CASE case1,CASE case2);
 void TriCases(CASE *vecteur,int indiceDebut,int indiceFin);
 
+//Etape 1  
+void* threadDeFileMessage(void * arg);
+void setMessage(const char* texte, bool singalOn);
+
+char* message = NULL;      // pointeur vers le message à faire défiler 
+int tailleMessage;  // longueur du message
+int indiceCourant;  // indice du premier caractère à afficher dans la zone graphique
+
+//Fonctions ----------------------------------------------------
+void FonctionTerminaison(void* arg);
+
+void Attente(int milli);
+
+//mutex -----------------------------------
+
+pthread_mutex_t mutexMessage = PTHREAD_MUTEX_INITIALIZER;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc,char* argv[])
 {
@@ -172,7 +189,7 @@ void TriCases(CASE *vecteur,int indiceDebut,int indiceFin)
   if (indiceDebut >= indiceFin) return;
 
   // Recherche du minimum
-  iMin = indiceDebut;
+  iMin = indiceDebut;DessineLettre;
   for (i=indiceDebut ; i<=indiceFin ; i++)
     if (CompareCases(vecteur[i],vecteur[iMin]) < 0) iMin = i;
 
@@ -182,8 +199,67 @@ void TriCases(CASE *vecteur,int indiceDebut,int indiceFin)
   vecteur[iMin] = tmp;
 
   // Tri du reste du vecteur par recursivite
-  TriCases(vecteur,indiceDebut+1,indiceFin); 
+  TriCases(vecteur,indiceDebut+1,indiceFin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+//ETAPE 1 //---------------------------------------------------------------------------------------------------------------------------
+void* threadDeFileMessage(void * arg)
+{
+  pthread_cleanup_push(FonctionTerminaison, (void *) message);
+  sigset_t mask;
+  sigfillset(&mask);
+  sigdelset(&mask, SIGALRM);
+  pthread_sigmask(SIG_SETMASK, &mask, NULL);
+  while(1)
+  {
+    for (int i = 0; i < 17; i++)
+    {
+      int indice = (indiceCourant + i) % tailleMessage;
+      DessineLettre(10, i+1, message[indice]);
+    }
+    indiceCourant++;
+    Attente(400);
+    if (indiceCourant >= tailleMessage)
+    {
+      indiceCourant = 0;
+    }
+
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+  }
+  pthread_cleanup_pop(1);
+}
+
+void setMessage(const char* texte, bool signalOn)
+{
+  pthread_mutex_lock(&mutexMessage);
+  alarm(0);
+  if (message != NULL)
+    free(message);
+  message = (char*) malloc(strlen(texte) + 1);
+  strcpy(message, texte);
+  tailleMessage = strlen(message);
+  indiceCourant = 0;
+  if(signalOn)
+  {
+    alarm(10);
+  }
+  pthread_mutex_unlock(&mutexMessage);
+
+}
+
+void FonctionTerminaison(void* arg)
+{
+  free(arg);
+}
+
+void Attente(int milli)
+{
+  struct timespec ts;
+  ts.tv_sec = milli / 1000;
+  ts.tv_nsec = (milli % 1000) * 1000000;
+  nanosleep(&ts, NULL);
+}
+//---------------------------------------------------------------------------------------------------------------------------
