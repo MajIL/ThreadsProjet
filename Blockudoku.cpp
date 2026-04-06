@@ -494,7 +494,9 @@ void* threadEvent(void* arg)
           if(traitementEnCours)
           {
             DessineVoyant(8,10,ROUGE);
+
             Attente(400);
+
             DessineVoyant(8,10,BLEU);
           }
           else
@@ -510,7 +512,9 @@ void* threadEvent(void* arg)
         if (tab[event.ligne][event.colonne] == BRIQUE ||tab[event.ligne][event.colonne] == DIAMANT)
         {
           DessineVoyant(8,10,ROUGE);
+
           Attente(400);
+
           if(traitementEnCours)
             DessineVoyant(8,10,BLEU);
           else
@@ -560,14 +564,14 @@ void* threadScore(void* arg)
     int co2 = (combos / 100) % 10;
     int co3 = (combos / 10) % 10;
     int co4 = combos % 10;
-    int c1 = (score / 1000) % 10; // séparation
+    int c1 = (score / 1000) % 10; //séparer
     int c2 = (score / 100) % 10;
     int c3 = (score / 10) % 10;
     int c4 = score % 10;
-    DessineChiffre(1, 14, c1); // 1000
-    DessineChiffre(1, 15, c2); // 0100
-    DessineChiffre(1, 16, c3); // 0010
-    DessineChiffre(1, 17, c4); // 0001
+    DessineChiffre(1, 14, c1); // millièmes 1000
+    DessineChiffre(1, 15, c2); // centaines 0100
+    DessineChiffre(1, 16, c3); // dizaines  0010
+    DessineChiffre(1, 17, c4); // unité     0001
     DessineChiffre(8, 14, co1);
     DessineChiffre(8, 15, co2);
     DessineChiffre(8, 16, co3);
