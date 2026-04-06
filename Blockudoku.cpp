@@ -479,7 +479,7 @@ void* threadPiece(void* arg)
 //ETAPE 3 //---------------------------------------------------------------------------------------------------------------------------
 void* threadEvent(void* arg)
 {
-   int ligne, colonne;
+  int ligne, colonne;
   while(1)
   {
     event = ReadEvent();
@@ -488,21 +488,21 @@ void* threadEvent(void* arg)
       pthread_cancel(threadP);
       pthread_exit(NULL);
     }
-    pthread_mutex_lock(&mutexTraitement);
     if (event.type == CLIC_GAUCHE)
     {
-      pthread_mutex_lock(&mutexCasesInserees);
+      
       if (event.ligne >= 0 && event.ligne < 9 && event.colonne >= 0 && event.colonne < 9)
       {
         if (tab[event.ligne][event.colonne] == VIDE)
         {
+          pthread_mutex_lock(&mutexCasesInserees);
           if(traitementEnCours)
           {
             DessineVoyant(8,10,ROUGE);
             Attente(400);
             DessineVoyant(8,10,BLEU);
           }
-          else
+          else if (!traitementEnCours)
           {
             DessineDiamant(event.ligne,event.colonne,pieceEnCours.couleur);
             tab[event.ligne][event.colonne] = DIAMANT;
@@ -511,8 +511,9 @@ void* threadEvent(void* arg)
             nbCasesInserees++;
             pthread_cond_signal(&condCasesInserees);
           }
+          pthread_mutex_unlock(&mutexCasesInserees);
         }
-        if (tab[event.ligne][event.colonne] == BRIQUE ||tab[event.ligne][event.colonne] == DIAMANT)
+        else if (tab[event.ligne][event.colonne] == BRIQUE ||tab[event.ligne][event.colonne] == DIAMANT)
         {
           DessineVoyant(8,10,ROUGE);
           Attente(400);
@@ -531,11 +532,10 @@ void* threadEvent(void* arg)
         else
           DessineVoyant(8,10,VERT);
       }
-      pthread_mutex_unlock(&mutexCasesInserees);
     }
-    pthread_mutex_unlock(&mutexTraitement);
     if (event.type == CLIC_DROIT)
     {
+      pthread_mutex_lock(&mutexCasesInserees);
       for (int i = 0; i < nbCasesInserees; i++)
       {
         EffaceCarre(casesInserees[i].ligne, casesInserees[i].colonne);
@@ -544,6 +544,7 @@ void* threadEvent(void* arg)
         tab[ligne][colonne] = VIDE;
       }
       nbCasesInserees = 0;
+      pthread_mutex_unlock(&mutexCasesInserees);
 
     }
   }
