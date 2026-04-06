@@ -479,10 +479,15 @@ void* threadPiece(void* arg)
 //ETAPE 3 //---------------------------------------------------------------------------------------------------------------------------
 void* threadEvent(void* arg)
 {
-  int ligne, colonne;
+   int ligne, colonne;
   while(1)
   {
     event = ReadEvent();
+    if (event.type == CROIX)
+    {
+      pthread_cancel(threadP);
+      pthread_exit(NULL);
+    }
     pthread_mutex_lock(&mutexTraitement);
     if (event.type == CLIC_GAUCHE)
     {
@@ -494,9 +499,7 @@ void* threadEvent(void* arg)
           if(traitementEnCours)
           {
             DessineVoyant(8,10,ROUGE);
-
             Attente(400);
-
             DessineVoyant(8,10,BLEU);
           }
           else
@@ -512,9 +515,7 @@ void* threadEvent(void* arg)
         if (tab[event.ligne][event.colonne] == BRIQUE ||tab[event.ligne][event.colonne] == DIAMANT)
         {
           DessineVoyant(8,10,ROUGE);
-
           Attente(400);
-
           if(traitementEnCours)
             DessineVoyant(8,10,BLEU);
           else
